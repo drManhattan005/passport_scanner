@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Local caches
+.matplotlib-cache/
+
+# Optional: Python packaging/build artifacts
+build/
+dist/
+*.egg-info/
+
+# Optional: editor junk
+.vscode/
+.idea/
+
+# Optional: environment files
+.env
+.env.*
+
+# Optional: temporary files
+*.log
+*.tmp

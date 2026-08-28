@@ -1,0 +1,11 @@
+git+https://github.com/AzwadFawadHasan/OmniMRZ@f5d1904aa63489ef94b09462d3e7c6632f67d7dc
+paddleocr==3.7.0
+paddlepaddle==3.3.1
+ScreenshotScanner==0.1.2
+opencv-python==5.0.0.93
+numpy==2.3.5
+pillow==12.3.0
+pytesseract==0.3.13
+matplotlib==3.11.1
+jupyterlab==4.6.3
+ipykernel==7.3.0
