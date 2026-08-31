@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MRZ Passport Batch Extractor</title>
+    <style>
+        :root {
+            --bg: #f6f7fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #dbe1ea;
+            --primary: #0f766e;
+            --primary-hover: #115e59;
+            --error: #b91c1c;
+            --success: #166534;
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 16px 48px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            background: #fbfcfe;
+        }
+
+        .file-list {
+            margin: 16px 0;
+            padding-left: 18px;
+            color: var(--text);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .secondary {
+            background: #e8eef7;
+            color: var(--text);
+        }
+
+        .status {
+            margin-top: 18px;
+            font-weight: 600;
+        }
+
+        .error {
+            color: var(--error);
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        pre {
+            margin-top: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 14px;
+            padding: 18px;
+            overflow: auto;
+            min-height: 220px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>Passport Batch Extractor</h1>
+            <p>Upload up to {{ max_files }} passport images at once and view the structured JSON response below.</p>
+
+            <form id="uploadForm">
+                <div class="dropzone">
+                    <input id="files" name="files" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+                    <p class="hint">Accepted formats: JPG, PNG, WEBP. Maximum 5 files per batch.</p>
+                    <ol id="fileList" class="file-list"></ol>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="primary">Process batch</button>
+                    <button type="button" class="secondary" id="clearBtn">Clear</button>
+                </div>
+            </form>
+
+            <div id="status" class="status"></div>
+            <pre id="output">{
+  "message": "Batch response will appear here"
+}</pre>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById("files");
+        const fileList = document.getElementById("fileList");
+        const form = document.getElementById("uploadForm");
+        const output = document.getElementById("output");
+        const status = document.getElementById("status");
+        const clearBtn = document.getElementById("clearBtn");
+        const MAX_FILES = {{ max_files }};
+
+        function renderFiles(files) {
+            fileList.innerHTML = "";
+            [...files].forEach((file) => {
+                const li = document.createElement("li");
+                li.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+                fileList.appendChild(li);
+            });
+        }
+
+        input.addEventListener("change", () => {
+            if (input.files.length > MAX_FILES) {
+                status.textContent = `Please select no more than ${MAX_FILES} files.`;
+                status.className = "status error";
+                input.value = "";
+                renderFiles([]);
+                return;
+            }
+            status.textContent = "";
+            status.className = "status";
+            renderFiles(input.files);
+        });
+
+        clearBtn.addEventListener("click", () => {
+            input.value = "";
+            renderFiles([]);
+            status.textContent = "";
+            status.className = "status";
+            output.textContent = '{\n  "message": "Batch response will appear here"\n}';
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const files = input.files;
+            if (!files.length) {
+                status.textContent = "Select at least one passport image.";
+                status.className = "status error";
+                return;
+            }
+
+            if (files.length > MAX_FILES) {
+                status.textContent = `You can upload up to ${MAX_FILES} files at once.`;
+                status.className = "status error";
+                return;
+            }
+
+            const formData = new FormData();
+            [...files].forEach((file) => formData.append("files", file));
+
+            status.textContent = "Processing batch...";
+            status.className = "status";
+
+            try {
+                const response = await fetch("/api/extract", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+
+                if (!response.ok) {
+                    status.textContent = data.detail || "Request failed.";
+                    status.className = "status error";
+                    return;
+                }
+
+                status.textContent = "Batch processed successfully.";
+                status.className = "status success";
+            } catch (error) {
+                status.textContent = error.message || "Unexpected error occurred.";
+                status.className = "status error";
+            }
+        });
+    </script>
+</body>
+
+</html>
