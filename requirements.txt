@@ -6,6 +6,6 @@ pydantic
 opencv-python
 numpy
 pillow
-git+https://github.com/AzwadFawadHasan/OmniMRZ@f5d1904aa63489ef94b09462d3e7c6632f67d7dc
 paddleocr==3.7.0
 paddlepaddle==3.3.1
+ScreenshotScanner==0.1.2
