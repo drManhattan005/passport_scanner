@@ -26,10 +26,14 @@ python -m venv .venv
 pip install --upgrade pip
 pip install -r requirements.txt
 
+The OmniMRZ source is included under `vendor/OmniMRZ-source` because the
+published package currently installs metadata without the importable package.
+The backend loads this vendored source automatically.
+
 ### 4. Run the app
 
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ### 5. Open in browser
 
-http://localhost:8000
+http://127.0.0.1:8000

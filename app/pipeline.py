@@ -1,6 +1,8 @@
 import json
 import os
+from pathlib import Path
 import re
+import sys
 import tempfile
 from io import BytesIO
 from typing import Any
@@ -8,6 +10,10 @@ from typing import Any
 import cv2
 import numpy as np
 from PIL import Image
+
+VENDORED_OMNIMRZ = Path(__file__).resolve().parents[1] / "vendor" / "OmniMRZ-source"
+if VENDORED_OMNIMRZ.is_dir():
+    sys.path.insert(0, str(VENDORED_OMNIMRZ))
 
 from omnimrz import OmniMRZ
 from omnimrz.parser import parse_mrz_fields
